@@ -40,6 +40,7 @@ import (
 	"github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/v2/daemon/internal/apisocket"
 	"github.com/moby/moby/v2/daemon/internal/nri"
+	"github.com/moby/moby/v2/daemon/internal/rootids"
 	"github.com/moby/sys/user"
 	"github.com/moby/sys/userns"
 	"github.com/opencontainers/selinux/go-selinux"
@@ -899,7 +900,7 @@ func NewDaemon(ctx context.Context, config *config.Config, pluginStore *plugin.S
 	if err != nil {
 		return nil, err
 	}
-	uid, gid := idMapping.RootPair()
+	uid, gid := rootids.Pair(idMapping)
 
 	// set up the tmpDir to use a canonical path
 	tmp, err := prepareTempDir(config.Root)
@@ -1879,7 +1880,7 @@ func CreateDaemonRoot(config *config.Config) error {
 	if err != nil {
 		return err
 	}
-	uid, gid := idMapping.RootPair()
+	uid, gid := rootids.Pair(idMapping)
 	return setupDaemonRoot(config, realRoot, uid, gid)
 }
 

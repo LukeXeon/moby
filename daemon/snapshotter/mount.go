@@ -9,6 +9,7 @@ import (
 	"github.com/containerd/log"
 	"github.com/moby/locker"
 	"github.com/moby/moby/v2/daemon/internal/mountref"
+	"github.com/moby/moby/v2/daemon/internal/rootids"
 	"github.com/moby/sys/mountinfo"
 	"github.com/moby/sys/user"
 )
@@ -119,7 +120,7 @@ type mounter struct {
 func (m mounter) Mount(mounts []mount.Mount, containerID string) (string, error) {
 	target := m.target(containerID)
 
-	uid, gid := m.idMap.RootPair()
+	uid, gid := rootids.Pair(m.idMap)
 	if err := user.MkdirAllAndChown(filepath.Dir(target), 0o710, os.Getuid(), gid); err != nil {
 		return "", err
 	}

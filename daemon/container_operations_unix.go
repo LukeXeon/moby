@@ -16,6 +16,7 @@ import (
 	"github.com/moby/moby/v2/daemon/config"
 	"github.com/moby/moby/v2/daemon/container"
 	"github.com/moby/moby/v2/daemon/internal/netipstringer"
+	"github.com/moby/moby/v2/daemon/internal/rootids"
 	"github.com/moby/moby/v2/daemon/internal/stringid"
 	"github.com/moby/moby/v2/daemon/libnetwork"
 	"github.com/moby/moby/v2/daemon/libnetwork/drivers/bridge"
@@ -256,7 +257,7 @@ func (daemon *Daemon) setupIPCDirs(ctr *container.Container) error {
 		fallthrough
 
 	case ipcMode.IsShareable():
-		uid, gid := daemon.idMapping.RootPair()
+		uid, gid := rootids.Pair(daemon.idMapping)
 		if !ctr.HasMountFor("/dev/shm") {
 			shmPath, err := ctr.ShmResourcePath()
 			if err != nil {
@@ -303,7 +304,7 @@ func (daemon *Daemon) setupSecretDir(ctr *container.Container) (setupErr error) 
 	}
 
 	// retrieve possible remapped range start for root UID, GID
-	ruid, rgid := daemon.idMapping.RootPair()
+	ruid, rgid := rootids.Pair(daemon.idMapping)
 
 	for _, s := range ctr.SecretReferences {
 		// TODO (ehazlett): use type switch when more are supported
@@ -409,7 +410,7 @@ func (daemon *Daemon) setupSecretDir(ctr *container.Container) (setupErr error) 
 // In practice this is using a tmpfs mount and is used for both "configs" and "secrets"
 func (daemon *Daemon) createSecretsDir(ctr *container.Container) error {
 	// retrieve possible remapped range start for root UID, GID
-	uid, gid := daemon.idMapping.RootPair()
+	uid, gid := rootids.Pair(daemon.idMapping)
 	dir, err := ctr.SecretMountPath()
 	if err != nil {
 		return errors.Wrap(err, "error getting container secrets dir")
@@ -435,7 +436,7 @@ func (daemon *Daemon) remountSecretDir(ctr *container.Container) error {
 	if err := label.Relabel(dir, ctr.MountLabel, false); err != nil {
 		log.G(context.TODO()).WithError(err).WithField("dir", dir).Warn("Error while attempting to set selinux label")
 	}
-	uid, gid := daemon.idMapping.RootPair()
+	uid, gid := rootids.Pair(daemon.idMapping)
 	tmpfsOwnership := fmt.Sprintf("uid=%d,gid=%d", uid, gid)
 
 	// Remount secrets as read-only, retrying on transient EBUSY errors.
@@ -606,6 +607,6 @@ func (daemon *Daemon) setupContainerMountsRoot(ctr *container.Container) error {
 	if err != nil {
 		return err
 	}
-	_, gid := daemon.IdentityMapping().RootPair()
+	_, gid := rootids.Pair(daemon.IdentityMapping())
 	return user.MkdirAllAndChown(p, 0o710, os.Getuid(), gid)
 }

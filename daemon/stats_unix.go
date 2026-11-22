@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -17,6 +16,7 @@ import (
 	cerrdefs "github.com/containerd/errdefs"
 	containertypes "github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/v2/daemon/container"
+	"github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/pkg/errors"
 )
 
@@ -50,7 +50,7 @@ func (daemon *Daemon) stats(c *container.Container) (*containertypes.StatsRespon
 	s := &containertypes.StatsResponse{
 		ID:     c.ID,
 		Name:   c.Name,
-		OSType: runtime.GOOS,
+		OSType: platform.OS,
 		Read:   cs.Read,
 	}
 	switch t := cs.Metrics.(type) {

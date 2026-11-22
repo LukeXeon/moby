@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"reflect"
-	"runtime"
 	"strings"
 
 	"github.com/containerd/containerd/v2/pkg/tracing"
@@ -22,6 +21,7 @@ import (
 	"github.com/moby/moby/v2/daemon/internal/image"
 	"github.com/moby/moby/v2/daemon/internal/ioutils"
 	"github.com/moby/moby/v2/daemon/internal/layer"
+	"github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/moby/moby/v2/daemon/internal/progress"
 	"github.com/moby/moby/v2/daemon/internal/streamformatter"
 	"github.com/moby/moby/v2/daemon/internal/stringid"
@@ -100,7 +100,7 @@ func (l *tarexporter) Load(ctx context.Context, inTar io.ReadCloser, outStream i
 			return err
 		}
 		if err := image.CheckOS(img.OperatingSystem()); err != nil {
-			return fmt.Errorf("cannot load %s image on %s", img.OperatingSystem(), runtime.GOOS)
+			return fmt.Errorf("cannot load %s image on %s", img.OperatingSystem(), platform.OS)
 		}
 		if l.platformMatcher != nil && !l.platformMatcher.Match(img.Platform()) {
 			continue

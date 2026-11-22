@@ -12,12 +12,18 @@ import (
 	"github.com/containerd/plugin"
 	"github.com/containerd/ttrpc"
 
-	// Windows-specific containerd plugin registrations. Cross-platform plugins
-	// are registered in server.go.
+	// Windows-specific containerd plugin registrations: the shim task runtime,
+	// snapshotter and differs. Cross-platform plugins are registered in
+	// server.go.
+	_ "github.com/containerd/containerd/v2/core/runtime/v2"
 	_ "github.com/containerd/containerd/v2/plugins/diff/lcow"
 	_ "github.com/containerd/containerd/v2/plugins/diff/windows"
 	_ "github.com/containerd/containerd/v2/plugins/snapshots/windows"
 )
+
+// runsShims reports whether tasks run in shim processes, whose sockets and
+// FIFOs use the default state directory.
+const runsShims = true
 
 func defaultAddress(stateDir string) string {
 	return `\\.\pipe\docker-containerd-embedded-` + stateDirID(stateDir)

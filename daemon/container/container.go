@@ -328,7 +328,9 @@ func (container *Container) CommitInMemory(store *ViewDB) error {
 
 // SetupWorkingDirectory sets up the container's working directory as set in container.Config.WorkingDir
 func (container *Container) SetupWorkingDirectory(uid int, gid int) error {
-	if container.Config.WorkingDir == "" {
+	// On Android the container's root exists only in its sandbox, which
+	// creates a missing working directory at start, as runsc does.
+	if container.Config.WorkingDir == "" || runtime.GOOS == "android" {
 		return nil
 	}
 

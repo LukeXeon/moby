@@ -26,16 +26,8 @@ type Mounter interface {
 }
 
 // NewMounter creates a new mounter for the provided snapshotter
-func NewMounter(home string, snapshotter string, idMap user.IdentityMapping) *refCountMounter {
-	return &refCountMounter{
-		base: mounter{
-			home:        home,
-			snapshotter: snapshotter,
-			idMap:       idMap,
-		},
-		rc:     mountref.NewCounter(isMounted),
-		locker: locker.New(),
-	}
+func NewMounter(home string, snapshotter string, idMap user.IdentityMapping) Mounter {
+	return newMounter(home, snapshotter, idMap)
 }
 
 type refCountMounter struct {

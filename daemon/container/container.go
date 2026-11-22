@@ -26,6 +26,7 @@ import (
 	swarmtypes "github.com/moby/moby/api/types/swarm"
 	"github.com/moby/moby/v2/daemon/internal/image"
 	libcontainerdtypes "github.com/moby/moby/v2/daemon/internal/libcontainerd/types"
+	"github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/moby/moby/v2/daemon/internal/restartmanager"
 	"github.com/moby/moby/v2/daemon/internal/stream"
 	"github.com/moby/moby/v2/daemon/logger"
@@ -806,7 +807,7 @@ func (container *Container) CreateDaemonEnvironment(tty bool, linkedEnv []string
 	// Setup environment
 	ctrOS := container.ImagePlatform.OS
 	if ctrOS == "" {
-		ctrOS = runtime.GOOS
+		ctrOS = platform.OS
 	}
 
 	// Figure out what size slice we need so we can allocate this all at once.

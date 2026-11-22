@@ -9,6 +9,7 @@ import (
 	"github.com/containerd/log"
 	"github.com/moby/moby/v2/daemon/config"
 	"github.com/moby/moby/v2/daemon/graphdriver"
+	"github.com/moby/moby/v2/daemon/internal/platform"
 )
 
 type imageStoreChoice string
@@ -99,7 +100,7 @@ func determineImageStoreChoice(cfgStore *config.Config, opts determineImageStore
 		opts.isRegisteredGraphdriver = graphdriver.IsRegistered
 	}
 	if opts.runtimeOS == "" {
-		opts.runtimeOS = runtime.GOOS
+		opts.runtimeOS = platform.OS
 	}
 
 	out := imageStoreChoiceContainerd

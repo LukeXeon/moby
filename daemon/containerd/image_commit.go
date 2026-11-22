@@ -19,6 +19,7 @@ import (
 	dockerspec "github.com/moby/docker-image-spec/specs-go/v1"
 	"github.com/moby/go-archive"
 	"github.com/moby/moby/v2/daemon/internal/image"
+	"github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/moby/moby/v2/daemon/server/backend"
 	"github.com/moby/moby/v2/errdefs"
 	"github.com/opencontainers/go-digest"
@@ -107,7 +108,7 @@ func generateCommitImageConfig(baseConfig dockerspec.DockerOCIImage, diffID dige
 	}
 	os := baseConfig.OS
 	if os == "" {
-		os = runtime.GOOS
+		os = platform.OS
 		log.G(context.TODO()).Warnf("assuming os=%q", os)
 	}
 	log.G(context.TODO()).Debugf("generateCommitImageConfig(): arch=%q, os=%q", arch, os)

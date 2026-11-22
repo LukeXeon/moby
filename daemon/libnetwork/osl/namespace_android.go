@@ -13,10 +13,41 @@ import (
 // On android, the network stack of a container is the netstack of the Sentry
 // that runs it. An app can neither create nor enter a kernel network
 // namespace, and seccomp kills it on mount and umount2, so a Namespace holds
-// no kernel object: it records the configuration of the sandbox, which starts
-// with only the loopback interface of the Sentry. The default Namespace stands
-// for the network of the daemon's own process. A change that has to be applied
-// to the network stack of a Sentry fails with a NotImplemented error.
+// no kernel object. The Namespace of a task changes the network stack of the
+// task through the Network that the embedder of the daemon provides; other
+// Namespaces only record their configuration. The default Namespace stands for
+// the network of the daemon's own process.
+
+// Network changes the network stacks of tasks for the daemon on android, as
+// netlink does on Linux. The embedder sets it with SetNetwork before the
+// daemon starts.
+type Network interface {
+	// Namespace returns the network namespace that path names, the
+	// "/proc/<pid>/ns/net" of the process that a runtime created for a task.
+	Namespace(path string) (NetworkNamespace, error)
+}
+
+// NetworkNamespace is the network stack of one task. Interface names are the
+// names in the namespace.
+type NetworkNamespace interface {
+	// AddInterface moves the link srcName, which a network driver created in
+	// the embedder's network, into the namespace as dstName.
+	AddInterface(srcName, dstName string, mac net.HardwareAddr, addresses []*net.IPNet) error
+	// RemoveInterface returns the interface dstName to the embedder's network
+	// under its original name.
+	RemoveInterface(dstName string) error
+	// AddRoute adds a route through dstName. gateway is nil for a route
+	// without a next hop.
+	AddRoute(destination *net.IPNet, gateway net.IP, dstName string) error
+	RemoveRoute(destination *net.IPNet, gateway net.IP, dstName string) error
+}
+
+var network Network
+
+// SetNetwork sets the Network that configures the network namespaces of tasks.
+func SetNetwork(n Network) {
+	network = n
+}
 
 // NewSandbox returns the Namespace with the given key. osCreate is false for
 // the default Namespace.
@@ -24,17 +55,25 @@ func NewSandbox(key string, osCreate, isRestore bool) (*Namespace, error) {
 	return &Namespace{path: key, isDefault: !osCreate}, nil
 }
 
-// GetSandboxForExternalKey returns the Namespace of a container whose runtime
-// created its network stack. On Linux basePath is the network namespace of the
-// runtime's process, which a Sentry does not have, so it is not used.
+// GetSandboxForExternalKey returns the Namespace of a task whose runtime
+// created its network stack. basePath is the network namespace of the task's
+// process.
 func GetSandboxForExternalKey(basePath string, key string) (*Namespace, error) {
-	return &Namespace{path: key}, nil
+	if network == nil {
+		return nil, types.NotImplementedErrorf("network sandbox %s: the daemon has no network for tasks", key)
+	}
+	stack, err := network.Namespace(basePath)
+	if err != nil {
+		return nil, err
+	}
+	return &Namespace{path: key, stack: stack}, nil
 }
 
 // Namespace represents the network stack of a sandbox.
 type Namespace struct {
-	path             string // path is the key of the sandbox. It is safe to access it concurrently.
-	isDefault        bool   // isDefault is true when Namespace represents the daemon's network. It is safe to access it concurrently.
+	path             string           // path is the key of the sandbox. It is safe to access it concurrently.
+	isDefault        bool             // isDefault is true when Namespace represents the daemon's network. It is safe to access it concurrently.
+	stack            NetworkNamespace // stack is the network stack of a task, nil for other sandboxes. It is safe to access it concurrently.
 	iFaces           []*Interface
 	gw               net.IP
 	gwv6             net.IP

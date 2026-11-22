@@ -23,6 +23,7 @@ import (
 	"github.com/moby/moby/v2/daemon/internal/multierror"
 	"github.com/moby/moby/v2/daemon/internal/otelutil"
 	"github.com/moby/moby/v2/daemon/internal/platform"
+	"github.com/moby/moby/v2/daemon/internal/rootids"
 	"github.com/moby/moby/v2/daemon/server/backend"
 	"github.com/moby/moby/v2/daemon/server/imagebackend"
 	"github.com/moby/moby/v2/errdefs"
@@ -261,14 +262,14 @@ func (daemon *Daemon) create(ctx context.Context, daemonCfg *config.Config, opts
 	}
 
 	// Set RWLayer for container after mount labels have been set
-	rwLayer, err := daemon.imageService.CreateLayer(ctr, setupInitLayer(daemon.idMapping.RootPair()))
+	rwLayer, err := daemon.imageService.CreateLayer(ctr, setupInitLayer(rootids.Pair(daemon.idMapping)))
 	if err != nil {
 		return nil, errdefs.System(err)
 	}
 	ctr.RWLayer = rwLayer
 
 	cuid := os.Getuid()
-	_, gid := daemon.IdentityMapping().RootPair()
+	_, gid := rootids.Pair(daemon.IdentityMapping())
 	if err := user.MkdirAndChown(ctr.Root, 0o710, cuid, gid); err != nil {
 		return nil, err
 	}

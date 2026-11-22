@@ -17,6 +17,7 @@ import (
 	containertypes "github.com/moby/moby/api/types/container"
 	dconfig "github.com/moby/moby/v2/daemon/config"
 	"github.com/moby/moby/v2/daemon/container"
+	"github.com/moby/moby/v2/daemon/internal/rootids"
 	"github.com/moby/moby/v2/daemon/internal/rootless/mountopts"
 	"github.com/moby/moby/v2/daemon/internal/rootless/specconv"
 	"github.com/moby/moby/v2/daemon/pkg/oci"
@@ -713,7 +714,7 @@ func withCommonOptions(daemon *Daemon, daemonCfg *dconfig.Config, c *container.C
 			Path:     c.BaseFS,
 			Readonly: c.HostConfig.ReadonlyRootfs,
 		}
-		if err := c.SetupWorkingDirectory(daemon.idMapping.RootPair()); err != nil {
+		if err := c.SetupWorkingDirectory(rootids.Pair(daemon.idMapping)); err != nil {
 			return err
 		}
 		cwd := c.Config.WorkingDir

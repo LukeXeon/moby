@@ -15,6 +15,7 @@ import (
 	"github.com/moby/moby/v2/daemon/container"
 	"github.com/moby/moby/v2/daemon/internal/cleanups"
 	"github.com/moby/moby/v2/daemon/internal/idtools"
+	"github.com/moby/moby/v2/daemon/internal/rootids"
 	volumemounts "github.com/moby/moby/v2/daemon/volume/mounts"
 	"github.com/pkg/errors"
 )
@@ -62,7 +63,7 @@ func (daemon *Daemon) setupMounts(ctx context.Context, c *container.Container) (
 			return nil
 		}
 
-		uid, gid := daemon.idMapping.RootPair()
+		uid, gid := rootids.Pair(daemon.idMapping)
 		path, clean, err := m.Setup(ctx, c.MountLabel, idtools.Identity{UID: uid, GID: gid}, checkfunc)
 		if err != nil {
 			return nil, nil, err
@@ -108,7 +109,7 @@ func (daemon *Daemon) setupMounts(ctx context.Context, c *container.Container) (
 	// if we are going to mount any of the network files from container
 	// metadata, the ownership must be set properly for potential container
 	// remapped root (user namespaces)
-	uid, gid := daemon.idMapping.RootPair()
+	uid, gid := rootids.Pair(daemon.idMapping)
 	for _, mnt := range netMounts {
 		// we should only modify ownership of network files within our own container
 		// metadata repository. If the user specifies a mount path external, it is

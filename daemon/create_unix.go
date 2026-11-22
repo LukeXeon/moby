@@ -14,6 +14,7 @@ import (
 	mounttypes "github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/v2/daemon/container"
 	"github.com/moby/moby/v2/daemon/internal/idtools"
+	"github.com/moby/moby/v2/daemon/internal/rootids"
 	"github.com/moby/moby/v2/daemon/pkg/oci"
 	volumemounts "github.com/moby/moby/v2/daemon/volume/mounts"
 	volumeopts "github.com/moby/moby/v2/daemon/volume/service/opts"
@@ -40,7 +41,7 @@ func (daemon *Daemon) createContainerVolumesOS(ctx context.Context, ctr *contain
 	}
 	defer daemon.Unmount(ctr)
 
-	if err := ctr.SetupWorkingDirectory(daemon.idMapping.RootPair()); err != nil {
+	if err := ctr.SetupWorkingDirectory(rootids.Pair(daemon.idMapping)); err != nil {
 		return err
 	}
 
@@ -117,7 +118,7 @@ func (daemon *Daemon) populateVolume(ctx context.Context, c *container.Container
 		return nil
 	}
 
-	uid, gid := daemon.idMapping.RootPair()
+	uid, gid := rootids.Pair(daemon.idMapping)
 	volumePath, cleanup, err := mnt.Setup(ctx, c.MountLabel, idtools.Identity{UID: uid, GID: gid}, nil)
 	if err != nil {
 		if cerrdefs.IsNotFound(err) {

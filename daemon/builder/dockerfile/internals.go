@@ -20,6 +20,7 @@ import (
 	"github.com/moby/moby/api/types/network"
 	"github.com/moby/moby/v2/daemon/builder"
 	"github.com/moby/moby/v2/daemon/internal/image"
+	"github.com/moby/moby/v2/daemon/internal/rootids"
 	"github.com/moby/moby/v2/daemon/internal/stringid"
 	networkSettings "github.com/moby/moby/v2/daemon/network"
 	"github.com/moby/moby/v2/daemon/server/backend"
@@ -41,7 +42,7 @@ func (b *Builder) getCopyFileOptions(inst copyInstruction, id identity) copyFile
 		decompress: inst.allowLocalDecompression,
 		archiver:   b.getArchiver(),
 	}
-	opts.rootUID, opts.rootGID = b.idMapping.RootPair()
+	opts.rootUID, opts.rootGID = rootids.Pair(b.idMapping)
 	if inst.fromImage {
 		// Files in another build stage or image are already owned
 		// by host (remapped) IDs, so they must not be remapped again.
@@ -174,7 +175,7 @@ func (b *Builder) performCopy(ctx context.Context, req dispatchRequest, inst cop
 		return err
 	}
 
-	uid, gid := b.idMapping.RootPair()
+	uid, gid := rootids.Pair(b.idMapping)
 	id := identity{UID: uid, GID: gid}
 	// if a chown was requested, perform the steps to get the uid, gid
 	// translated (if necessary because of user namespaces), and replace

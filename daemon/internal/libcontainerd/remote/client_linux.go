@@ -12,6 +12,7 @@ import (
 	"github.com/containerd/containerd/v2/pkg/cio"
 	"github.com/containerd/log"
 	libcontainerdtypes "github.com/moby/moby/v2/daemon/internal/libcontainerd/types"
+	"github.com/moby/moby/v2/daemon/internal/rootids"
 	"github.com/moby/sys/user"
 	"github.com/opencontainers/runtime-spec/specs-go"
 )
@@ -34,10 +35,7 @@ func hostIDFromMap(id uint32, mp []specs.LinuxIDMapping) int {
 }
 
 func getSpecUser(ociSpec *specs.Spec) (int, int) {
-	var (
-		uid int
-		gid int
-	)
+	uid, gid := rootids.Pair(user.IdentityMapping{})
 
 	for _, ns := range ociSpec.Linux.Namespaces {
 		if ns.Type == specs.UserNamespace {
@@ -57,7 +55,7 @@ func WithBundle(bundleDir string, ociSpec *specs.Spec) containerd.NewContainerOp
 			c.Labels = make(map[string]string)
 		}
 		uid, gid := getSpecUser(ociSpec)
-		if uid == 0 && gid == 0 {
+		if ruid, rgid := rootids.Pair(user.IdentityMapping{}); uid == ruid && gid == rgid {
 			c.Labels[DockerContainerBundlePath] = bundleDir
 			return user.MkdirAllAndChown(bundleDir, 0o755, uid, gid, user.WithOnlyNew)
 		}

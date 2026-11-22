@@ -22,6 +22,7 @@ import (
 	"github.com/moby/moby/v2/daemon/internal/distribution/xfer"
 	"github.com/moby/moby/v2/daemon/internal/image"
 	"github.com/moby/moby/v2/daemon/internal/layer"
+	daemonplatform "github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/moby/moby/v2/daemon/internal/progress"
 	refstore "github.com/moby/moby/v2/daemon/internal/refstore"
 	"github.com/moby/moby/v2/daemon/internal/stringid"
@@ -537,7 +538,7 @@ func (p *puller) pullSchema2Layers(ctx context.Context, target distribution.Desc
 		configPlatform   *ocispec.Platform // for LCOW when registering downloaded layers
 	)
 
-	layerStoreOS := runtime.GOOS
+	layerStoreOS := daemonplatform.OS
 	if platform != nil {
 		layerStoreOS = platform.OS
 	}

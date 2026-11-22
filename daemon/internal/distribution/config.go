@@ -4,7 +4,6 @@ import (
 	"context"
 	"encoding/json"
 	"io"
-	"runtime"
 
 	c8dimages "github.com/containerd/containerd/v2/core/images"
 	"github.com/distribution/reference"
@@ -15,6 +14,7 @@ import (
 	"github.com/moby/moby/v2/daemon/internal/distribution/xfer"
 	"github.com/moby/moby/v2/daemon/internal/image"
 	"github.com/moby/moby/v2/daemon/internal/layer"
+	"github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/moby/moby/v2/daemon/internal/progress"
 	refstore "github.com/moby/moby/v2/daemon/internal/refstore"
 	registrypkg "github.com/moby/moby/v2/daemon/pkg/registry"
@@ -149,7 +149,7 @@ func platformFromConfig(c []byte) (*ocispec.Platform, error) {
 
 	os := unmarshalledConfig.OS
 	if os == "" {
-		os = runtime.GOOS
+		os = platform.OS
 	}
 	if err := image.CheckOS(os); err != nil {
 		return nil, errors.Wrapf(err, "image operating system %q cannot be used on this platform", os)

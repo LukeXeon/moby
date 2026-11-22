@@ -26,6 +26,7 @@ import (
 	"github.com/moby/moby/v2/daemon/builder"
 	"github.com/moby/moby/v2/daemon/internal/image"
 	"github.com/moby/moby/v2/daemon/internal/netiputil"
+	daemonplatform "github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/moby/moby/v2/errdefs"
 	"github.com/moby/sys/signal"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
@@ -260,7 +261,7 @@ func (d *dispatchRequest) getImageOrStage(ctx context.Context, name string, plat
 		if platform != nil {
 			imageImage.OS = platform.OS
 		} else {
-			imageImage.OS = runtime.GOOS
+			imageImage.OS = daemonplatform.OS
 		}
 		return builder.Image(imageImage), nil
 	}

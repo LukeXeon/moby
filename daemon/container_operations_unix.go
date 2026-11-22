@@ -539,7 +539,7 @@ func buildSandboxPlatformOptions(ctr *container.Container, cfg *config.Config) (
 		// namespace, so both `/etc/hosts` and `/etc/resolv.conf` should be the same
 		// as on the host itself. The container gets a copy of these files.
 		sboxOptions = append(sboxOptions, libnetwork.OptionOriginHostsPath("/etc/hosts"))
-		originResolvConfPath = "/etc/resolv.conf"
+		originResolvConfPath = hostResolvConf()
 	case ctr.HostConfig.NetworkMode.IsUserDefined():
 		// The container uses a user-defined network. We use the embedded DNS
 		// server for container name resolution and to act as a DNS forwarder
@@ -552,7 +552,7 @@ func buildSandboxPlatformOptions(ctr *container.Container, cfg *config.Config) (
 		// If systemd-resolvd is used, the "upstream" DNS servers can be found in
 		// /run/systemd/resolve/resolv.conf. We do not query those DNS servers
 		// directly, as they can be dynamically reconfigured.
-		originResolvConfPath = "/etc/resolv.conf"
+		originResolvConfPath = hostResolvConf()
 	default:
 		// For other situations, such as the default bridge network, container
 		// discovery / name resolution is handled through /etc/hosts, and no

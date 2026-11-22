@@ -271,9 +271,7 @@ func (i *ImageService) prepareInitLayer(ctx context.Context, id string, parent s
 	}
 
 	if setupInit != nil {
-		if err := mount.WithTempMount(ctx, mounts, func(root string) error {
-			return setupInit(root)
-		}); err != nil {
+		if err := withSnapshotRoot(ctx, mounts, setupInit); err != nil {
 			return err
 		}
 	}

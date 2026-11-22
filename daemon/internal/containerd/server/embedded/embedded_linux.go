@@ -1,4 +1,4 @@
-//go:build !no_embedded_containerd
+//go:build !no_embedded_containerd && !android
 
 package embedded
 
@@ -12,16 +12,22 @@ import (
 	"github.com/containerd/ttrpc"
 	"github.com/docker/go-connections/sockets"
 
-	// Linux-specific containerd plugin registrations: the overlayfs and native
-	// snapshotters, the walking differ, and the runc runtime options type.
-	// The cgroups task monitor is registered by the cgroups import above.
+	// Linux-specific containerd plugin registrations: the shim task runtime,
+	// the overlayfs and native snapshotters, the walking differ, and the runc
+	// runtime options type. The cgroups task monitor is registered by the
+	// cgroups import above.
 	//
 	// Cross-platform plugins are registered in server.go.
 	_ "github.com/containerd/containerd/api/types/runc/options"
+	_ "github.com/containerd/containerd/v2/core/runtime/v2"
 	_ "github.com/containerd/containerd/v2/plugins/diff/walking/plugin"
 	_ "github.com/containerd/containerd/v2/plugins/snapshots/native/plugin"
 	_ "github.com/containerd/containerd/v2/plugins/snapshots/overlay/plugin"
 )
+
+// runsShims reports whether tasks run in shim processes, whose sockets and
+// FIFOs use the default state directory.
+const runsShims = true
 
 func defaultAddress(stateDir string) string {
 	return filepath.Join(stateDir, "containerd.sock")

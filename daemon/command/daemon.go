@@ -225,6 +225,8 @@ func (cli *daemonCLI) start(ctx context.Context) (retErr error) {
 	apiShutdownCtx, apiShutdownCancel := context.WithCancel(context.WithoutCancel(ctx))
 	apiShutdownDone := make(chan struct{})
 	trap.Trap(cli.stop)
+	// A program that embeds the daemon stops it by cancelling the context.
+	context.AfterFunc(ctx, cli.stop)
 	go func() {
 		// Block until cli.stop() has been called.
 		// It may have already been called, and that's okay.

@@ -14,6 +14,7 @@ import (
 	"github.com/containerd/log"
 	"github.com/moby/moby/v2/daemon/config"
 	"github.com/moby/moby/v2/daemon/internal/rootless"
+	"github.com/moby/moby/v2/daemon/internal/unix_noeintr"
 	"github.com/moby/moby/v2/daemon/libnetwork/ns"
 	"github.com/moby/moby/v2/daemon/libnetwork/resolvconf"
 	"github.com/moby/sys/mount"
@@ -167,24 +168,11 @@ var kernelSupportsRecursivelyReadOnly = sync.OnceValue(func() error {
 	}
 	defer func() { _ = os.Remove(tmpMnt) }()
 
-	for {
-		err = unix.Mount("", tmpMnt, "tmpfs", 0, "")
-		if !errors.Is(err, unix.EINTR) {
-			break
-		}
-	}
-	if err != nil {
+	if err := unix_noeintr.Mount("", tmpMnt, "tmpfs", 0, ""); err != nil {
 		return fmt.Errorf("failed to mount tmpfs on %q: %w", tmpMnt, err)
 	}
 	defer func() {
-		var umErr error
-		for {
-			umErr = unix.Unmount(tmpMnt, 0)
-			if !errors.Is(umErr, unix.EINTR) {
-				break
-			}
-		}
-		if umErr != nil {
+		if umErr := unix_noeintr.Unmount(tmpMnt, 0); umErr != nil {
 			log.G(context.TODO()).WithError(umErr).Warnf("Failed to unmount %q", tmpMnt)
 		}
 	}()

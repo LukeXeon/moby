@@ -11,6 +11,7 @@ import (
 
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/v2/daemon/internal/layer"
+	"github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/opencontainers/go-digest"
 	ocispec "github.com/opencontainers/image-spec/specs-go/v1"
 )
@@ -168,7 +169,7 @@ func (img *Image) BaseImgVariant() string {
 func (img *Image) OperatingSystem() string {
 	os := img.OS
 	if os == "" {
-		os = runtime.GOOS
+		os = platform.OS
 	}
 	return os
 }

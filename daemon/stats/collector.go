@@ -1,12 +1,12 @@
 package stats
 
 import (
-	"runtime"
 	"sync"
 	"time"
 
 	containertypes "github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/v2/daemon/container"
+	"github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/moby/pubsub"
 )
 
@@ -112,7 +112,7 @@ func (s *Collector) Run() {
 				stats = &containertypes.StatsResponse{
 					ID:     pair.container.ID,
 					Name:   pair.container.Name,
-					OSType: runtime.GOOS,
+					OSType: platform.OS,
 				}
 			}
 			pair.publisher.Publish(*stats)

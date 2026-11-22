@@ -10,6 +10,7 @@ import (
 	"github.com/containerd/log"
 	containertypes "github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/v2/daemon/container"
+	"github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/moby/moby/v2/daemon/server/backend"
 	"github.com/pkg/errors"
 )
@@ -32,7 +33,7 @@ func (daemon *Daemon) ContainerStats(ctx context.Context, prefixOrName string, c
 			return json.NewEncoder(config.OutStream()).Encode(&containertypes.StatsResponse{
 				ID:     ctr.ID,
 				Name:   ctr.Name,
-				OSType: runtime.GOOS,
+				OSType: platform.OS,
 			})
 		}
 		if config.OneShot {
@@ -139,7 +140,7 @@ done:
 			return &containertypes.StatsResponse{
 				ID:     ctr.ID,
 				Name:   ctr.Name,
-				OSType: runtime.GOOS,
+				OSType: platform.OS,
 			}, nil
 		}
 		log.G(context.TODO()).Errorf("collecting stats for container %s: %v", ctr.Name, err)

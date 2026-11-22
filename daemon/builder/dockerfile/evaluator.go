@@ -22,7 +22,6 @@ package dockerfile
 import (
 	"context"
 	"reflect"
-	"runtime"
 	"strconv"
 	"strings"
 
@@ -31,6 +30,7 @@ import (
 	"github.com/moby/moby/api/types/container"
 	"github.com/moby/moby/v2/daemon/builder"
 	"github.com/moby/moby/v2/daemon/internal/image"
+	"github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/moby/moby/v2/daemon/pkg/oci"
 	"github.com/moby/moby/v2/errdefs"
 	"github.com/pkg/errors"
@@ -219,7 +219,7 @@ func (s *dispatchState) beginStage(stageName string, img builder.Image) error {
 	s.imageID = img.ImageID()
 	s.operatingSystem = img.Platform().OS
 	if s.operatingSystem == "" {
-		s.operatingSystem = runtime.GOOS
+		s.operatingSystem = platform.OS
 	}
 	if err := image.CheckOS(s.operatingSystem); err != nil {
 		return err

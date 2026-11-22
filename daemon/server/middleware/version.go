@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 	"net/http"
-	"runtime"
 
 	"github.com/moby/moby/v2/daemon/config"
+	"github.com/moby/moby/v2/daemon/internal/platform"
 	"github.com/moby/moby/v2/daemon/internal/versions"
 	"github.com/moby/moby/v2/daemon/server/httputils"
 )
@@ -66,9 +66,9 @@ func (e versionUnsupportedError) InvalidParameter() {}
 // WrapHandler returns a new handler function wrapping the previous one in the request chain.
 func (v VersionMiddleware) WrapHandler(handler func(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error) func(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
 	return func(ctx context.Context, w http.ResponseWriter, r *http.Request, vars map[string]string) error {
-		w.Header().Set("Server", fmt.Sprintf("Docker/%s (%s)", v.serverVersion, runtime.GOOS))
+		w.Header().Set("Server", fmt.Sprintf("Docker/%s (%s)", v.serverVersion, platform.OS))
 		w.Header().Set("Api-Version", v.defaultAPIVersion)
-		w.Header().Set("Ostype", runtime.GOOS)
+		w.Header().Set("Ostype", platform.OS)
 
 		apiVersion := vars["version"]
 		if apiVersion == "" {

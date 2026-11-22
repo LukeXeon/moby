@@ -2,6 +2,7 @@ package daemon
 
 import (
 	"context"
+	"runtime"
 	"time"
 
 	containerd "github.com/containerd/containerd/v2/client"
@@ -207,6 +208,13 @@ func (daemon *Daemon) containerStart(ctx context.Context, daemonCfg *configStore
 		is, ok := daemon.imageService.(*mobyc8dstore.ImageService)
 		if !ok {
 			return nil
+		}
+		if runtime.GOOS == "android" {
+			// An Android app cannot mount the container's writable layer on
+			// the host. Referencing the snapshot passes its mounts to the
+			// runtime, which assembles the root in the container's sandbox.
+			c.Snapshotter = is.StorageDriver()
+			c.SnapshotKey = container.ID
 		}
 		img, err := is.ResolveImage(ctx, container.Config.Image)
 		if err != nil {

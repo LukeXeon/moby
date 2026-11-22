@@ -217,7 +217,7 @@ func createTopLevelDirectories(cfg *serverConfig) error {
 	if err := sys.MkdirAllWithACL(cfg.state, 0o711); err != nil {
 		return fmt.Errorf("creating containerd state directory: %w", err)
 	}
-	if cfg.state != defaults.DefaultStateDir {
+	if runsShims && cfg.state != defaults.DefaultStateDir {
 		// Shim sockets and FIFOs still use the default state directory even when
 		// containerd is configured with a different state directory.
 		if err := sys.MkdirAllWithACL(defaults.DefaultStateDir, 0o711); err != nil {

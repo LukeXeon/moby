@@ -14,7 +14,13 @@ import (
 // InvokeFunc, are in the daemon's network. Instead of DNAT rules in the
 // namespace, the sandbox redirects the queries that the task sends to the
 // resolver's address to those listeners, and queries to external servers
-// leave from the sandbox through its Dial.
+// leave from the sandbox through its Dial. The host's network namespace, from
+// which the nameservers of the host's resolv.conf are reached, is the
+// embedder's network rather than the daemon process's.
+
+func dialInHost(proto, addr string) (net.Conn, error) {
+	return osl.Dial(proto, addr)
+}
 
 func (r *Resolver) setupNAT(context.Context) error {
 	if r.err != nil {

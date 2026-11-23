@@ -488,7 +488,7 @@ func (r *Resolver) dialExtDNS(proto string, server extDNSEntry) (net.Conn, error
 	addr := net.JoinHostPort(server.IPStr, port)
 
 	if server.HostLoopback {
-		return net.DialTimeout(proto, addr, extIOTimeout)
+		return dialInHost(proto, addr)
 	}
 
 	return r.dialInSandbox(proto, addr)

@@ -26,6 +26,9 @@ type Network interface {
 	// Namespace returns the network namespace that path names, the
 	// "/proc/<pid>/ns/net" of the process that a runtime created for a task.
 	Namespace(path string) (NetworkNamespace, error)
+	// Dial connects to address from the embedder's network, which the
+	// daemon's networks and resolv.conf belong to.
+	Dial(network, address string) (net.Conn, error)
 }
 
 // NetworkNamespace is the network stack of one task. Interface names are the
@@ -55,6 +58,15 @@ var network Network
 // SetNetwork sets the Network that configures the network namespaces of tasks.
 func SetNetwork(n Network) {
 	network = n
+}
+
+// Dial connects to address from the embedder's network, where the host's
+// network namespace of Linux is.
+func Dial(proto, address string) (net.Conn, error) {
+	if network == nil {
+		return nil, types.NotImplementedErrorf("connecting to %s %s: the daemon has no network", proto, address)
+	}
+	return network.Dial(proto, address)
 }
 
 // NewSandbox returns the Namespace with the given key. osCreate is false for

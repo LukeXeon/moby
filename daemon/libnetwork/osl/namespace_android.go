@@ -3,6 +3,7 @@ package osl
 import (
 	"context"
 	"net"
+	"net/netip"
 	"slices"
 	"sync"
 
@@ -40,6 +41,13 @@ type NetworkNamespace interface {
 	// without a next hop.
 	AddRoute(destination *net.IPNet, gateway net.IP, dstName string) error
 	RemoveRoute(destination *net.IPNet, gateway net.IP, dstName string) error
+	// Redirect makes what the namespace sends to from over network, "tcp" or
+	// "udp", reach to in the daemon's network, as a DNAT rule in the
+	// namespace to a service of the host does. It replaces the redirect of
+	// the same network and address.
+	Redirect(network string, from, to netip.AddrPort) error
+	// Dial connects to address from the namespace, as a process in it does.
+	Dial(network, address string) (net.Conn, error)
 }
 
 var network Network
@@ -130,14 +138,30 @@ func (n *Namespace) DisableARPForVIP(srcName string) error {
 	return n.notImplemented("disabling ARP on " + srcName)
 }
 
-// InvokeFunc runs f in the network of the sandbox. Only the default Namespace,
-// the daemon's own network, can run code.
+// InvokeFunc runs f in the daemon's own network: the daemon cannot enter the
+// network stack of a task, so the sockets that f opens are the daemon's. The
+// embedded resolver, which opens its listeners this way, reaches the task
+// through Redirect and Dial.
 func (n *Namespace) InvokeFunc(f func()) error {
-	if !n.isDefault {
-		return n.notImplemented("running a function in the network namespace")
-	}
 	f()
 	return nil
+}
+
+// Redirect makes what the sandbox sends to from over network reach to in the
+// daemon's network.
+func (n *Namespace) Redirect(network string, from, to netip.AddrPort) error {
+	if n.stack == nil {
+		return n.notImplemented("redirecting " + network + " " + from.String())
+	}
+	return n.stack.Redirect(network, from, to)
+}
+
+// Dial connects to address from the sandbox.
+func (n *Namespace) Dial(network, address string) (net.Conn, error) {
+	if n.stack == nil {
+		return nil, n.notImplemented("connecting to " + network + " " + address)
+	}
+	return n.stack.Dial(network, address)
 }
 
 // Key returns the key of the sandbox.

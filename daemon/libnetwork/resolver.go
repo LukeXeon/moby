@@ -491,21 +491,7 @@ func (r *Resolver) dialExtDNS(proto string, server extDNSEntry) (net.Conn, error
 		return net.DialTimeout(proto, addr, extIOTimeout)
 	}
 
-	var (
-		extConn net.Conn
-		dialErr error
-	)
-	err := r.backend.ExecFunc(func() {
-		extConn, dialErr = net.DialTimeout(proto, addr, extIOTimeout)
-	})
-	if err != nil {
-		return nil, err
-	}
-	if dialErr != nil {
-		return nil, dialErr
-	}
-
-	return extConn, nil
+	return r.dialInSandbox(proto, addr)
 }
 
 func (r *Resolver) forwardExtDNS(ctx context.Context, proto string, remoteAddr net.Addr, query *dns.Msg) *dns.Msg {

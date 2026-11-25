@@ -1152,7 +1152,8 @@ func NewDaemon(ctx context.Context, config *config.Config, pluginStore *plugin.S
 		return nil, err
 	}
 	d.execCommands = container.NewExecStore()
-	if runtime.GOOS == "linux" {
+	// Android runs on the Linux kernel and has its /proc/meminfo.
+	if runtime.GOOS == "linux" || runtime.GOOS == "android" {
 		if mi, err := meminfo.Read(); err == nil && mi.MemTotal > 0 {
 			d.machineMemory = uint64(mi.MemTotal)
 		}

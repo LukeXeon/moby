@@ -51,6 +51,8 @@ type NetworkNamespace interface {
 	Redirect(network string, from, to netip.AddrPort) error
 	// Dial connects to address from the namespace, as a process in it does.
 	Dial(network, address string) (net.Conn, error)
+	// Statistics returns the counters of the interface dstName.
+	Statistics(dstName string) (*types.InterfaceStatistics, error)
 }
 
 var network Network

@@ -95,7 +95,10 @@ func (i *Interface) Remove() error {
 
 // Statistics returns the statistics of the interface.
 func (i *Interface) Statistics() (*types.InterfaceStatistics, error) {
-	return nil, i.ns.notImplemented("reading the statistics of " + i.dstName)
+	if i.ns.stack == nil {
+		return nil, i.ns.notImplemented("reading the statistics of " + i.dstName)
+	}
+	return i.ns.stack.Statistics(i.dstName)
 }
 
 // AddInterface moves the link srcName into the network stack of the task,

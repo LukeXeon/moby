@@ -149,6 +149,11 @@ func (l *rwLayer) mounts(ctx context.Context) ([]mount.Mount, error) {
 	return l.snapshotter.Mounts(ctx, l.id)
 }
 
+// Mounts returns the snapshotter mounts backing this container layer.
+func (l *rwLayer) Mounts(ctx context.Context) ([]mount.Mount, error) {
+	return l.mounts(ctx)
+}
+
 func (l *rwLayer) Mount(mountLabel string) (string, error) {
 	ctx := context.TODO()
 

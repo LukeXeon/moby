@@ -4,22 +4,16 @@ package daemon
 
 import (
 	"context"
-	"fmt"
-	"os"
 	"path/filepath"
 
-	cerrdefs "github.com/containerd/errdefs"
 	"github.com/containerd/log"
 	containertypes "github.com/moby/moby/api/types/container"
 	mounttypes "github.com/moby/moby/api/types/mount"
 	"github.com/moby/moby/v2/daemon/container"
-	"github.com/moby/moby/v2/daemon/internal/idtools"
 	"github.com/moby/moby/v2/daemon/internal/rootids"
 	"github.com/moby/moby/v2/daemon/pkg/oci"
-	volumemounts "github.com/moby/moby/v2/daemon/volume/mounts"
 	volumeopts "github.com/moby/moby/v2/daemon/volume/service/opts"
 	"github.com/opencontainers/selinux/go-selinux/label"
-	"github.com/pkg/errors"
 )
 
 // createContainerOSSpecificSettings performs host-OS specific container create functionality
@@ -55,14 +49,8 @@ func (daemon *Daemon) createContainerVolumesOS(ctx context.Context, ctr *contain
 			// Not an error, this could easily have come from the image config.
 			continue
 		}
-		path, err := ctr.GetResourcePath(destination)
-		if err != nil {
+		if err := daemon.checkVolumeDestination(ctx, ctr, destination); err != nil {
 			return err
-		}
-
-		stat, err := os.Stat(path)
-		if err == nil && !stat.IsDir() {
-			return fmt.Errorf("cannot mount volume over existing file, file exists %s", path)
 		}
 
 		v, err := daemon.volumes.Create(context.TODO(), "", ctr.HostConfig.VolumeDriver, volumeopts.WithCreateReference(ctr.ID))
@@ -95,48 +83,5 @@ func (daemon *Daemon) populateVolumes(ctx context.Context, c *container.Containe
 			return err
 		}
 	}
-	return nil
-}
-
-func (daemon *Daemon) populateVolume(ctx context.Context, c *container.Container, mnt *volumemounts.MountPoint) error {
-	ctrDestPath, err := c.GetResourcePath(mnt.Destination)
-	if err != nil {
-		return err
-	}
-
-	stat, err := os.Stat(ctrDestPath)
-	if err != nil {
-		if os.IsNotExist(err) {
-			return nil
-		}
-		return err
-	}
-
-	// Volume population copies directory contents from the container image
-	// into the volume. This only applies when the source is a directory.
-	if !stat.IsDir() {
-		return nil
-	}
-
-	uid, gid := rootids.Pair(daemon.idMapping)
-	volumePath, cleanup, err := mnt.Setup(ctx, c.MountLabel, idtools.Identity{UID: uid, GID: gid}, nil)
-	if err != nil {
-		if cerrdefs.IsNotFound(err) {
-			return nil
-		}
-		log.G(ctx).WithError(err).Debugf("can't copy data from %s:%s, to %s", c.ID, mnt.Destination, volumePath)
-		return errors.Wrapf(err, "failed to populate volume")
-	}
-	defer func() {
-		ctx := context.WithoutCancel(ctx)
-		_ = cleanup(ctx)
-		_ = mnt.Cleanup(ctx)
-	}()
-
-	log.G(ctx).Debugf("copying image data from %s:%s, to %s", c.ID, mnt.Destination, volumePath)
-	if err := c.CopyImagePathContent(volumePath, ctrDestPath); err != nil {
-		return err
-	}
-
 	return nil
 }

@@ -1034,7 +1034,7 @@ func (daemon *Daemon) createSpec(ctx context.Context, daemonCfg *configStore, c 
 		WithResources(c),
 		WithSysctls(c),
 		// Set the user before CDI device injection, which may append supplementary groups.
-		WithUser(c),
+		daemon.withUser(c),
 		WithUmask(c),
 		WithDevices(daemon, c),
 		withRlimits(daemon, &daemonCfg.Config, c),

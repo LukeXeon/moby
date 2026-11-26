@@ -43,13 +43,7 @@ func getUserFromContainerd(ctx context.Context, containerdCli *containerd.Client
 
 func (daemon *Daemon) execSetPlatformOpt(ctx context.Context, daemonCfg *config.Config, ec *container.ExecConfig, p *specs.Process) error {
 	if ec.User != "" {
-		var user specs.User
-		var err error
-		if daemon.UsesSnapshotter() {
-			user, err = getUserFromContainerd(ctx, daemon.containerdClient, ec)
-		} else {
-			user, err = getUser(ec.Container, ec.User)
-		}
+		user, err := daemon.execUser(ctx, ec)
 		if err != nil {
 			return err
 		}

@@ -110,7 +110,7 @@ func (daemon *Daemon) ContainerExecCreate(name string, options *containertypes.E
 		// changing in future (either allow creating an invalid exec, and
 		// checking before starting, or checking both before create and
 		// before start).
-		if _, err := getUser(cntr, user); err != nil {
+		if _, err := daemon.lookupContainerUser(context.Background(), cntr, user); err != nil {
 			return "", errdefs.InvalidParameter(err)
 		}
 	}

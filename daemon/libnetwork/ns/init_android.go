@@ -6,11 +6,10 @@ import (
 	"github.com/vishvananda/netns"
 )
 
-// An Android app cannot open netlink sockets, and the network namespaces of
-// the daemon's containers are not kernel namespaces, see osl. The handle
-// opens a socket for each request, as the package-level functions of netlink
-// do, so a request fails with the kernel's error instead of the daemon
-// panicking when it first needs a handle.
+// An Android app cannot bind netlink sockets, and the network namespaces of
+// the daemon's containers are not kernel namespaces, see osl. The returned
+// handle is a placeholder whose nlwrap methods report EACCES directly without
+// touching kernel netlink sockets.
 
 // ResetHandles does nothing: the handles keep no state.
 func ResetHandles() {}

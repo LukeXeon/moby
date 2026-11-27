@@ -15,12 +15,10 @@ import (
 	"github.com/moby/moby/v2/daemon/config"
 	"github.com/moby/moby/v2/daemon/internal/rootless"
 	"github.com/moby/moby/v2/daemon/internal/unix_noeintr"
-	"github.com/moby/moby/v2/daemon/libnetwork/ns"
 	"github.com/moby/moby/v2/daemon/libnetwork/resolvconf"
 	"github.com/moby/sys/mount"
 	"github.com/moby/sys/mountinfo"
 	"github.com/pkg/errors"
-	"github.com/vishvananda/netlink"
 	"golang.org/x/sys/unix"
 )
 
@@ -143,22 +141,6 @@ func setupResolvConf(config *config.Config) {
 	}
 	// FIXME(thaJeztah): we can't use [github.com/moby/moby/v2/daemon/libnetwork/internal/resolvconf.Path] here, because it's internal to libnetwork.
 	config.ResolvConf = resolvconf.Path()
-}
-
-// ifaceAddrs returns the addresses from family assigned to the network
-// interface with name linkName.
-//
-// No error is returned if the named interface does not exist.
-func ifaceAddrs(linkName string, family int) ([]netlink.Addr, error) {
-	nl := ns.NlHandle()
-	link, err := nl.LinkByName(linkName)
-	if err != nil {
-		if !errors.As(err, new(netlink.LinkNotFoundError)) {
-			return nil, err
-		}
-		return nil, nil
-	}
-	return nl.AddrList(link, family)
 }
 
 var kernelSupportsRecursivelyReadOnly = sync.OnceValue(func() error {

@@ -269,11 +269,6 @@ func applyDevicesCgroupInfo(info *SysInfo) {
 	info.CgroupDevicesEnabled = ok
 }
 
-// applyNetworkingInfo adds networking information to the info.
-func applyNetworkingInfo(info *SysInfo) {
-	info.IPv4ForwardingDisabled = !readProcBool("/proc/sys/net/ipv4/ip_forward")
-}
-
 // applyAppArmorInfo adds whether AppArmor is enabled to the info.
 func applyAppArmorInfo(info *SysInfo) {
 	info.AppArmor = apparmorSupported()

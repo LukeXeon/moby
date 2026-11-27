@@ -1,3 +1,5 @@
+//go:build !android
+
 // Package nlwrap wraps vishvandanda/netlink functions that may return EINTR.
 //
 // A Handle instantiated using [NewHandle] or [NewHandleAt] can be used in place

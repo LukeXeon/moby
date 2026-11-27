@@ -254,7 +254,7 @@ func (r *Root) Remove(v volume.Volume) error {
 }
 
 func removePath(path string) error {
-	if err := os.RemoveAll(path); err != nil {
+	if err := removeAll(path); err != nil {
 		if os.IsNotExist(err) {
 			return nil
 		}

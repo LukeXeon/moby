@@ -20,13 +20,12 @@ import (
 
 	// Cross-platform plugin registrations. Each blank import registers one or
 	// more containerd plugins that the local bootstrap then loads. Platform-specific
-	// snapshotters and differs are registered in embedded_linux.go /
-	// embedded_windows.go.
+	// snapshotters, differs and the task runtime are registered in
+	// embedded_linux.go / embedded_windows.go / embedded_android.go.
 	//
 	// This is a trimmed subset of containerd's cmd/containerd/builtins: dockerd
 	// does not need CRI, sandbox, streaming, transfer, NRI, or the restart
 	// monitor.
-	_ "github.com/containerd/containerd/v2/core/runtime/v2"
 	_ "github.com/containerd/containerd/v2/plugins/content/local/plugin"
 	_ "github.com/containerd/containerd/v2/plugins/events"
 	_ "github.com/containerd/containerd/v2/plugins/gc"

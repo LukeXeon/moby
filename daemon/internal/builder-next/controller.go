@@ -83,6 +83,7 @@ func getTraceExporter(ctx context.Context) trace.SpanExporter {
 }
 
 func newSnapshotterController(ctx context.Context, rt http.RoundTripper, opt Opt) (_ *control.Controller, retErr error) {
+	initSnapshotterCaps()
 	if err := os.MkdirAll(opt.Root, 0o711); err != nil {
 		return nil, err
 	}

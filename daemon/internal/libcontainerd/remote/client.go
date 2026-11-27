@@ -712,12 +712,21 @@ func (c *client) writeContent(ctx context.Context, mediaType, ref string, r io.R
 	labels := map[string]string{
 		"containerd.io/gc.root": time.Now().UTC().Format(time.RFC3339),
 	}
+	dgst := writer.Digest()
 	if err := writer.Commit(ctx, 0, "", content.WithLabels(labels)); err != nil {
-		return nil, err
+		if runtime.GOOS != "android" || !cerrdefs.IsAlreadyExists(err) {
+			return nil, err
+		}
+		if _, err := c.client.ContentStore().Update(ctx, content.Info{
+			Digest: dgst,
+			Labels: labels,
+		}, "labels.containerd.io/gc.root"); err != nil {
+			return nil, err
+		}
 	}
 	return &types.Descriptor{
 		MediaType: mediaType,
-		Digest:    writer.Digest().String(),
+		Digest:    dgst.String(),
 		Size:      size,
 	}, nil
 }
